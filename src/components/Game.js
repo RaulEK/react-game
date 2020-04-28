@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import './Game.css';
 import Piece from './Piece';
 import WinMenu from './WinMenu';
@@ -6,25 +6,22 @@ import gameController from '../services/game-controller';
 
 const Game = ({gameSize, setIsPlaying}) => {
 
-    const [pieces, setPieces] = useState([{color: 'green', position: [0, 0]}, {
-        color: 'red',
-        position: [0, 5]
-    }, {color: 'red', position: [5, 0]}])
+    const [pieces, setPieces] = useState([])
     const [playerPosition, setPlayerPosition] = useState([45, 45]);
 
     function updatePieces() {
         setPieces(gameController.updateGame([...pieces], [...playerPosition]));
     }
 
-    const handleKeyDown = (event) => {
+    const handleKeyPress = (event) => {
         const newPlayerPosition = [...playerPosition];
-        if (event.keyCode === 37 && newPlayerPosition[0] > 0) {
+        if (event.key.toLowerCase() === 'a' && newPlayerPosition[0] > 0) {
             newPlayerPosition[0] = newPlayerPosition[0] - 1;
-        } else if (event.keyCode === 38 && newPlayerPosition[1] > 0) {
+        } else if (event.key.toLowerCase() === 'w' && newPlayerPosition[1] > 0) {
             newPlayerPosition[1] = newPlayerPosition[1] - 1;
-        } else if (event.keyCode === 39 && newPlayerPosition[0] < 95) {
+        } else if (event.key.toLowerCase() === 'd' && newPlayerPosition[0] < 95) {
             newPlayerPosition[0] = newPlayerPosition[0] + 1;
-        } else if (event.keyCode === 40 && newPlayerPosition[1] < 95) {
+        } else if (event.key.toLowerCase() === 's' && newPlayerPosition[1] < 95) {
             newPlayerPosition[1] = newPlayerPosition[1] + 1;
         }
         if (!(gameController.checkOverlap(newPlayerPosition, pieces.map(piece => piece.position), 0))) {
@@ -36,6 +33,13 @@ const Game = ({gameSize, setIsPlaying}) => {
     useEffect(() => {
         setPieces(gameController.generateStartPositions(gameSize, playerPosition));
     }, [])
+
+    useEffect(() => {
+        window.addEventListener('keypress', handleKeyPress)
+        return () => {
+            window.removeEventListener('keypress', handleKeyPress)
+        }
+    })
 
     if (pieces.filter(piece => piece.color === 'green').length === parseInt(gameSize)) {
         return (
@@ -68,7 +72,7 @@ const Game = ({gameSize, setIsPlaying}) => {
                 </div>
                 <div className='game-area'>
                     {pieces.map(piece => <Piece key={piece.position} position={piece.position} color={piece.color}/>)}
-                    <div tabIndex='0' onKeyDown={handleKeyDown} style={{
+                    <div style={{
                         position: 'absolute',
                         left: playerPosition[0] + '%',
                         top: playerPosition[1] + '%',
@@ -80,8 +84,8 @@ const Game = ({gameSize, setIsPlaying}) => {
                 </div>
             </div>
             <div className='rules'>
-                <h3>Kasuta kollase kasti liigutamiseks nooli klaviatuuril</h3>
-                <h3>NB! Kui kollane kast ei liigu, siis vajuta tema peale</h3>
+                <h3>Kasuta liikumiseks 'wasd' klaviatuuril</h3>
+                <h3>Teised kastid liiguvad ainult siis kui kollane kast liigub</h3>
                 <h3>Edu!</h3>
             </div>
         </div>
